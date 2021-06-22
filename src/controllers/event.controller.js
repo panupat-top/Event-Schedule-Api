@@ -9,8 +9,12 @@ const addController = async (req, res) => {
       throw { status: 400, message: 'parameter not found!' };
     }
 
-    await firestore.collection('events').doc().set({ name, date, time });
-    res.status(200).json({ message: 'ok' });
+    const docRef = await firestore.collection('events').add({ name, date, time });
+    const { id } = docRef;
+
+    await firestore.collection('events').doc(id).update({ id: id });
+
+    res.status(200).json({ message: 'insert event success' });
   } catch (error) {
     res.status(error.status || 500).json({ error_message: error.message || 'Server Error!' });
   }
@@ -35,7 +39,25 @@ const listsController = async (req, res) => {
   }
 };
 
+const removeController = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      throw { status: 400, message: 'parameter not found!' };
+    }
+
+    await firestore.collection('events').doc(id).delete();
+    
+    res.status(200).json({ message: 'remove event success' });
+  } catch (error) {
+    console.log(error);
+    res.status(error.status || 500).json({ error_message: error.message || 'Server Error!' });
+  }
+};
+
 module.exports = {
   addController,
   listsController,
+  removeController
 };
